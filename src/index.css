@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;550;600;700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-canvas-white: #ffffff;
+  --color-charcoal-text: #28262a;
+  --color-ash-gray: #4a4a4c;
+  --color-parchment: #f3f1eb;
+  --color-whisper-gray: #dddcdd;
+  --color-cloud-gray: #cbcbcb;
+  --color-zenith-blue: #97cde5;
+  --color-sage-green: #c8dfaa;
+
+  /* Typography */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: 'Playfair Display', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Typography — Scale */
+  --text-caption: 12px;
+  --leading-caption: 1.5;
+  --tracking-caption: 0.24px;
+  
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.33;
+  --tracking-body-sm: 0.28px;
+  
+  --text-body: 16px;
+  --leading-body: 1.3;
+  --tracking-body: 0.32px;
+  
+  --text-subheading: 18px;
+  --leading-subheading: 1.2;
+  --tracking-subheading: 0.28px;
+  
+  --text-heading: 30px;
+  --leading-heading: 1.2;
+  --tracking-heading: -0.6px;
+  
+  --text-heading-lg: 40px;
+  --leading-heading-lg: 1.2;
+  --tracking-heading-lg: -0.8px;
+  
+  --text-display: 56px;
+  --leading-display: 1;
+  --tracking-display: -2.24px;
+
+  /* Border Radii */
+  --radius-md: 4px;
+  --radius-2xl: 16px;
+  --radius-2xl-2: 20px;
+  --radius-3xl: 24px;
+  --radius-3xl-2: 30px;
+  --radius-full: 50px;
+  --radius-full-2: 100px;
+}
+
+/* Base modifications */
+body {
+  background-color: var(--color-canvas-white);
+  color: var(--color-charcoal-text);
+  font-family: var(--font-sans);
+}
+
+/* Animations helper */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

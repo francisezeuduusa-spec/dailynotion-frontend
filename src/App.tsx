@@ -94,6 +94,13 @@ const MainAppContent: React.FC = () => {
       );
     }
 
+    // Notion OAuth callback — ?notion=connected means backend already saved the token
+    // We just need to refresh the user state and proceed
+    if (currentPath.includes('select-databases') && new URLSearchParams(window.location.search).get('notion') === 'connected') {
+      // Clean the URL query param without triggering a reload
+      window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+    }
+
     // Onboarding screens
     if (
       currentPath === '/select-plan' ||

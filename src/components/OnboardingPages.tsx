@@ -21,7 +21,8 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
     selectDatabases,
     selectDefaultTemplateOnboarding,
     setScheduleTime,
-    addToast
+    addToast,
+    isBootstrapping
   } = useAppState();
 
   const [loading, setLoading] = useState(false);
@@ -89,6 +90,15 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
 
   const handleConnectNotion = async () => {
     setLoading(true);
+    // Save tokens to localStorage before leaving — they survive the full page redirect
+    const accessToken = localStorage.getItem('dn_access_token');
+    const refreshToken = localStorage.getItem('dn_refresh_token');
+    if (!accessToken || !refreshToken) {
+      addToast('Session expired. Please log in again.', 'error');
+      onNavigate('/login');
+      setLoading(false);
+      return;
+    }
     await connectNotion();
     setLoading(false);
   };
@@ -172,6 +182,16 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
       </div>
     );
   };
+
+  // Don't render until auth is restored from localStorage
+  if (isBootstrapping) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
+        <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
+        <span className="text-xs uppercase tracking-widest font-mono font-bold">Restoring your session...</span>
+      </div>
+    );
+  }
 
   // View 1: SELECT PLAN
   if (currentStep === 'select-plan') {

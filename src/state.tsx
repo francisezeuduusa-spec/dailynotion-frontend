@@ -323,6 +323,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const connectNotion = async () => {
     try {
       const { data } = await notionApi.getAuthUrl();
+      // Persist tokens explicitly before full page redirect
+      // so they survive the Notion OAuth round-trip
+      const access = tokenStore.getAccessToken();
+      const refresh = tokenStore.getRefreshToken();
+      if (access) localStorage.setItem('dn_access_token', access);
+      if (refresh) localStorage.setItem('dn_refresh_token', refresh);
       // Redirect browser to Notion OAuth
       window.location.href = data.authUrl;
     } catch (err: any) {

@@ -53,7 +53,7 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
   }, [currentStep]);
 
   // States for Choose Template view
-  const [selectedTemplateName, setSelectedTemplateName] = useState('Simple Daily Layout');
+  const [selectedTemplateName, setSelectedTemplateName] = useState('Simple Daily');
 
   // States for Set Schedule view
   const [generateTime, setGenerateTime] = useState('08:00');

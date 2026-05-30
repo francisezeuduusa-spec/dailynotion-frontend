@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppState } from '../state';
 import { ShieldAlert, Trash2, Key, Info, Check, RefreshCw, AlertTriangle, ExternalLink, Settings as SettingsIcon } from 'lucide-react';
 import { NotionLogo } from './NotionLogo';
@@ -36,6 +36,12 @@ export const DashboardSettings: React.FC = () => {
   // Section 4: Schedule Change
   const [schedTime, setSchedTime] = useState(schedule?.generate_time || '08:00');
   const [schedTz, setSchedTz] = useState(schedule?.timezone || 'America/New_York');
+
+  // Sync local state when schedule loads from API after mount
+  useEffect(() => {
+    if (schedule?.generate_time) setSchedTime(schedule.generate_time);
+    if (schedule?.timezone) setSchedTz(schedule.timezone);
+  }, [schedule?.generate_time, schedule?.timezone]);
   const [savingSched, setSavingSched] = useState(false);
 
   // Section 5: Danger Overlay Delete Modal

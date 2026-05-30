@@ -534,6 +534,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSchedule(mapSchedule(data.schedule));
       addToast(data.schedule.is_active ? 'Schedule resumed.' : 'Schedule paused.', 'info');
     } catch (err: any) {
+      const status = err?.response?.status;
+      // If no schedule exists yet, create one first then toggle
+      if (status === 404) {
+        try {
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
+          const { data } = await scheduleApi.save('08:00', tz);
+          setSchedule(mapSchedule(data.schedule));
+          addToast('Schedule created and activated.', 'success');
+        } catch (saveErr: any) {
+          addToast(saveErr.response?.data?.error || 'Failed to create schedule.', 'error');
+        }
+        return;
+      }
       addToast(err.response?.data?.error || 'Failed to toggle schedule.', 'error');
     }
   };
@@ -626,11 +639,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const load = async () => {
       await Promise.allSettled([
-        notionApi.getConfig().then(({ data }) => setNotionConfig(mapNotionConfig(data.config))),
-        scheduleApi.get().then(({ data }) => setSchedule(mapSchedule(data.schedule))),
+        notionApi.getConfig().then(({ data }) => setNotionConfig(mapNotionConfig(data.config))).catch(() => {}),
+        scheduleApi.get().then(({ data }) => {
+          if (data.schedule) setSchedule(mapSchedule(data.schedule));
+        }).catch(() => {}),
         fetchTemplates(),
         fetchRuns(1),
-        billingApi.getSubscription().then(({ data }) => setSubscription(mapSubscription(data.subscription))),
+        billingApi.getSubscription().then(({ data }) => {
+          if (data.subscription) setSubscription(mapSubscription(data.subscription));
+        }).catch(() => {}),
       ]);
     };
 

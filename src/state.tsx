@@ -149,7 +149,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [notionConfig, setNotionConfig] = useState<NotionConfig | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [defaultTemplates, setDefaultTemplates] = useState<Template[]>([]);
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [runs, setRuns] = useState<JournalRun[]>([]);
   const [runsPagination, setRunsPagination] = useState({ page: 1, total: 0, totalPages: 1 });
@@ -393,21 +392,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // ─────────────────────────────────────────────
   // TEMPLATES
+  // Default templates are hardcoded here so they
+  // always show during onboarding even before any
+  // API call succeeds. They exactly match the backend.
   // ─────────────────────────────────────────────
+  const STATIC_DEFAULT_TEMPLATES: Template[] = [
+    {
+      id: 'dt-1',
+      name: 'Simple Daily',
+      body: `# Journal — {{date}}\n\n## ✅ Today's Tasks\n{{tasks_today}}\n\n## 📝 Recent Notes\n{{notes_last_24h}}\n\n---\n*My reflections:*\n\n`,
+      is_default: false,
+      is_custom: false,
+    },
+    {
+      id: 'dt-2',
+      name: 'Full Daily Review',
+      body: `# Daily Journal — {{date}}\n\n## 🗓 Today's Schedule\n{{meetings_today}}\n\n## ✅ Tasks Due Today\n{{tasks_today}}\n\n## 📝 Notes from Yesterday\n{{notes_last_24h}}\n\n## 🔄 Habits\n{{habit_tracker}}\n\n---\n## 💭 Reflections\n**What went well:**\n\n**What was challenging:**\n\n**Tomorrow's focus:**\n\n`,
+      is_default: false,
+      is_custom: false,
+    },
+    {
+      id: 'dt-3',
+      name: 'Minimal',
+      body: `# {{date}}\n\n{{tasks_today}}\n\n---\n`,
+      is_default: false,
+      is_custom: false,
+    },
+  ];
+
+  // Set static defaults immediately so onboarding never shows empty
+  const [defaultTemplates, setDefaultTemplates] = useState<Template[]>(STATIC_DEFAULT_TEMPLATES);
+
   const fetchTemplates = async () => {
+    // Always ensure static defaults are present
+    setDefaultTemplates(STATIC_DEFAULT_TEMPLATES);
     try {
       const { data } = await templatesApi.list();
       setTemplates((data.templates || []).map(mapTemplate));
-      setDefaultTemplates(
-        (data.defaultTemplates || []).map((t: any, i: number) => ({
-          id: `dt-${i + 1}`,
-          name: t.name,
-          body: t.body,
-          is_default: false,
-          is_custom: false,
-        }))
-      );
-    } catch { /* silently ignore on background refresh */ }
+      // If backend returns defaults, use those — otherwise keep static ones
+      if (data.defaultTemplates && data.defaultTemplates.length > 0) {
+        setDefaultTemplates(
+          data.defaultTemplates.map((t: any, i: number) => ({
+            id: `dt-${i + 1}`,
+            name: t.name,
+            body: t.body,
+            is_default: false,
+            is_custom: false,
+          }))
+        );
+      }
+    } catch {
+      // Keep static defaults on error — user always sees templates
+    }
   };
 
   const saveTemplate = async (name: string, body: string, isDefault: boolean, id?: string) => {

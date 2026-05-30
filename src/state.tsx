@@ -191,8 +191,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentUser(data.user);
         setSubscription(mapSubscription(data.subscription));
         setOnboarding(mapOnboarding(data.onboarding));
-      } catch {
-        tokenStore.clearTokens();
+      } catch (err: any) {
+        // Only clear tokens on a real 401 — not on network errors or timeouts
+        // This prevents losing the session after a Notion/Google OAuth redirect
+        const status = err?.response?.status;
+        if (status === 401) {
+          tokenStore.clearTokens();
+        }
+        // For any other error (500, network timeout, etc.) keep the token
+        // and let the user stay on the page — the token may still be valid
       } finally {
         setIsBootstrapping(false);
       }

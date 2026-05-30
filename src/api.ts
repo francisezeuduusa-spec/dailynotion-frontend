@@ -10,8 +10,12 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 // ─────────────────────────────────────────────
 // Token storage (memory + localStorage fallback)
 // ─────────────────────────────────────────────
-let _accessToken: string | null = localStorage.getItem('dn_access_token');
-let _refreshToken: string | null = localStorage.getItem('dn_refresh_token');
+// Read tokens from localStorage on every module load
+// This ensures tokens survive full page reloads from OAuth redirects
+const _storedAccess = localStorage.getItem('dn_access_token');
+const _storedRefresh = localStorage.getItem('dn_refresh_token');
+let _accessToken: string | null = _storedAccess && _storedAccess !== 'null' && _storedAccess !== 'undefined' ? _storedAccess : null;
+let _refreshToken: string | null = _storedRefresh && _storedRefresh !== 'null' && _storedRefresh !== 'undefined' ? _storedRefresh : null;
 
 export const tokenStore = {
   setTokens(access: string, refresh: string) {
@@ -25,6 +29,9 @@ export const tokenStore = {
     _refreshToken = null;
     localStorage.removeItem('dn_access_token');
     localStorage.removeItem('dn_refresh_token');
+    // Also clear any stale string values that could corrupt the check
+    localStorage.setItem('dn_access_token', '');
+    localStorage.setItem('dn_refresh_token', '');
   },
   getAccessToken: () => _accessToken,
   getRefreshToken: () => _refreshToken,
@@ -42,8 +49,18 @@ const client: AxiosInstance = axios.create({
 });
 
 // Attach token on every request
+// Re-reads from localStorage each time in case token was set
+// after module load (e.g. after an OAuth redirect)
 client.interceptors.request.use((config) => {
-  const token = tokenStore.getAccessToken();
+  let token = tokenStore.getAccessToken();
+  // Fallback: if in-memory token is null, try localStorage directly
+  if (!token) {
+    const stored = localStorage.getItem('dn_access_token');
+    if (stored && stored !== 'null' && stored !== 'undefined' && stored !== '') {
+      token = stored;
+      _accessToken = stored; // restore in-memory copy
+    }
+  }
   if (token && config.headers) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }

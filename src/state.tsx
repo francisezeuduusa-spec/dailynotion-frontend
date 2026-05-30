@@ -216,18 +216,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // ── Hash routing ──
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    
     const handleHash = () => {
       const path = window.location.hash.replace('#', '') || '/';
-      // Only redirect to login if there's no token AND no user
-      // This prevents redirecting during auth operations when token exists but user is still loading
-      if (path.startsWith('/dashboard') && !currentUser && !isBootstrapping && !tokenStore.getAccessToken()) {
-        navigate('/login');
+      // If trying to access dashboard without a user loaded, check token first
+      // If token exists, user is logged in - just wait for user data to load
+      // Only redirect to login if there's no token at all
+      if (path.startsWith('/dashboard') && !currentUser && !isBootstrapping) {
+        const token = tokenStore.getAccessToken();
+        if (!token || token === '') {
+          navigate('/login');
+        } else {
+          // Token exists but user not loaded yet - stay on dashboard, don't redirect
+          setCurrentPath(path);
+        }
         return;
       }
       setCurrentPath(path);
     };
+    
     window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
+    // Small delay to allow state updates to settle before routing decision
+    timeoutId = setTimeout(handleHash, 50);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHash);
+      clearTimeout(timeoutId);
+    };
   }, [currentUser, isBootstrapping, navigate]);
 
   // ─────────────────────────────────────────────

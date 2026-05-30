@@ -53,15 +53,15 @@ const client: AxiosInstance = axios.create({
 // after module load (e.g. after an OAuth redirect)
 client.interceptors.request.use((config) => {
   let token = tokenStore.getAccessToken();
-  // Fallback: if in-memory token is null, try localStorage directly
-  if (!token) {
+  // Fallback: if in-memory token is null/empty, try localStorage directly
+  if (!token || token === '') {
     const stored = localStorage.getItem('dn_access_token');
-    if (stored && stored !== 'null' && stored !== 'undefined' && stored !== '') {
+    if (stored && stored !== 'null' && stored !== 'undefined' && stored !== '' && stored.length > 20) {
       token = stored;
       _accessToken = stored; // restore in-memory copy
     }
   }
-  if (token && config.headers) {
+  if (token && token.length > 20 && config.headers) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
   return config;

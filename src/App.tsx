@@ -101,6 +101,18 @@ const MainAppContent: React.FC = () => {
       window.history.replaceState({}, '', window.location.pathname + window.location.hash);
     }
 
+    // Onboarding routes require authentication — redirect to login if not authenticated
+    const isOnboardingRoute = [
+      '/select-plan', '/checkout', '/onboarding/connect-notion',
+      '/onboarding/select-databases', '/onboarding/choose-template',
+      '/onboarding/set-schedule'
+    ].includes(currentPath);
+
+    if (isOnboardingRoute && !currentUser) {
+      navigate('/login');
+      return null;
+    }
+
     // Onboarding screens
     if (
       currentPath === '/select-plan' ||

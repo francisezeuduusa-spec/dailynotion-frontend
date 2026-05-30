@@ -180,8 +180,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ── Bootstrap: load user on app start if token exists ──
   useEffect(() => {
     const boot = async () => {
-      const token = tokenStore.getAccessToken();
-      if (!token) {
+      // First try in-memory token, then fall back to localStorage
+      let token = tokenStore.getAccessToken();
+      if (!token || token === '') {
+        const stored = localStorage.getItem('dn_access_token');
+        if (stored && stored !== 'null' && stored !== 'undefined' && stored !== '' && stored.length > 20) {
+          token = stored;
+          _accessToken = stored; // restore in-memory
+        }
+      }
+      if (!token || token === '') {
         setIsBootstrapping(false);
         return;
       }

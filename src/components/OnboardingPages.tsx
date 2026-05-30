@@ -245,7 +245,7 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
                   <li className="flex items-center gap-2">✓ Manual generation only</li>
                   <li className="flex items-center gap-2">✓ 1 pre-built template</li>
                   <li className="flex items-center gap-2">✓ Pull from 1 database</li>
-                  <li className="flex items-center gap-2">✓ 30-day run history</li>
+                  <li className="flex items-center gap-2">✓ 14-day run history</li>
                 </ul>
               </div>
               <button
@@ -267,8 +267,8 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
                 <span className="text-[11px] font-mono font-bold text-cloud-gray uppercase tracking-wider">Automated Daily</span>
                 <h3 className="text-xl font-bold text-charcoal-text mt-1">Pro</h3>
                 <div className="my-4 flex items-baseline gap-1">
-                  <span className="font-serif text-3xl font-medium">{isYearly ? '$8.33' : '$10'}</span>
-                  <span className="text-ash-gray text-xs">/ month {isYearly ? '(billed $100 annually)' : ''}</span>
+                  <span className="font-serif text-3xl font-medium">{isYearly ? '$3.75' : '$5'}</span>
+                  <span className="text-ash-gray text-xs">/ month {isYearly ? '(billed $45 annually)' : ''}</span>
                 </div>
                 <hr className="border-whisper-gray my-4" />
                 <ul className="flex flex-col gap-2.5 text-xs text-ash-gray mt-4">
@@ -294,8 +294,8 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
                 <span className="text-[11px] font-mono font-bold text-cloud-gray uppercase tracking-wider">Enterprise Teams</span>
                 <h3 className="text-xl font-bold text-charcoal-text mt-1">Team</h3>
                 <div className="my-4 flex items-baseline gap-1">
-                  <span className="font-serif text-3xl font-medium">{isYearly ? '$24.16' : '$29'}</span>
-                  <span className="text-ash-gray text-xs">/ month {isYearly ? '(billed $290 annually)' : ''}</span>
+                  <span className="font-serif text-3xl font-medium">{isYearly ? '$11.25' : '$15'}</span>
+                  <span className="text-ash-gray text-xs">/ month {isYearly ? '(billed $135 annually)' : ''}</span>
                 </div>
                 <hr className="border-whisper-gray my-4" />
                 <ul className="flex flex-col gap-2.5 text-xs text-ash-gray mt-4">

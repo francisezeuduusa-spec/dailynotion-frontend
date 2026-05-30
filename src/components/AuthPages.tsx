@@ -34,8 +34,10 @@ export const AuthPages: React.FC<AuthPageProps> = ({ onNavigate, isSignUp = fals
         return;
       }
       const ok = await signup(fullname, email, password);
+      // Real error is already shown as a toast from state.tsx
+      // Don't override it with a generic message here
       if (!ok) {
-        setErrorText('Registration failed. Please check inputs.');
+        setErrorText(null);
       }
     } else {
       const ok = await login(email, password);

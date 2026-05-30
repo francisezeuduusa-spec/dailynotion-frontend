@@ -178,8 +178,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     isNavigatingRef.current = true;
     window.location.hash = path;
     setCurrentPath(path);
-    // Clear the ref after navigation settles
-    setTimeout(() => { isNavigatingRef.current = false; }, 100);
+    // Clear the ref after navigation settles - longer delay to catch any late hash changes
+    setTimeout(() => { isNavigatingRef.current = false; }, 500);
   }, []);
 
   // ── Bootstrap: load user on app start if token exists ──
@@ -222,14 +222,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ── Hash routing ──
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
+    let isFirstRun = true;
     
     const handleHash = () => {
       const path = window.location.hash.replace('#', '') || '/';
+      
       // If navigating, don't check - let the navigation complete
       if (isNavigatingRef.current) {
         setCurrentPath(path);
         return;
       }
+      
+      // If this is the first run and we're on an onboarding page, don't redirect
+      // This prevents the flash on initial page load
+      if (isFirstRun) {
+        setCurrentPath(path);
+        isFirstRun = false;
+        return;
+      }
+      
       // If trying to access dashboard without a user loaded, check token first
       // If token exists, user is logged in - just wait for user data to load
       // Only redirect to login if there's no token at all
@@ -248,7 +259,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     window.addEventListener('hashchange', handleHash);
     // Small delay to allow state updates to settle before routing decision
-    timeoutId = setTimeout(handleHash, 50);
+    timeoutId = setTimeout(handleHash, 100);
     
     return () => {
       window.removeEventListener('hashchange', handleHash);

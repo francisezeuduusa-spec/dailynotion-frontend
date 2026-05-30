@@ -125,7 +125,7 @@ const MainAppContent: React.FC = () => {
     }
 
     // Onboarding routes require authentication — redirect to login if not authenticated
-    // But don't redirect if we're in the middle of navigating (isNavigatingRef is set)
+    // But don't redirect if we're in the middle of navigating
     const isOnboardingRoute = [
       '/select-plan', '/checkout', '/onboarding/connect-notion',
       '/onboarding/select-databases', '/onboarding/choose-template',
@@ -133,7 +133,7 @@ const MainAppContent: React.FC = () => {
     ].includes(currentPath);
 
     if (isOnboardingRoute && !currentUser && !isBootstrapping) {
-      // Only redirect if not navigating (navigate() sets isNavigatingRef.current)
+      // Only redirect if not navigating AND no token exists
       if (!isNavigatingRef.current) {
         import('./api').then(({ tokenStore }) => {
           if (!tokenStore.getAccessToken()) {
@@ -141,7 +141,14 @@ const MainAppContent: React.FC = () => {
           }
         });
       }
+      // Return null to avoid flash - let the navigate complete naturally
       return null;
+    }
+
+    // Dashboard routes - if user is logged in and onboarding is complete, show dashboard
+    // If user is logged in but onboarding incomplete, they'll be redirected by backend guard
+    if (currentPath.startsWith('/dashboard') && currentUser) {
+      return renderDashboardLayout();
     }
 
     // Onboarding screens

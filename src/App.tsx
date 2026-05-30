@@ -94,11 +94,33 @@ const MainAppContent: React.FC = () => {
       );
     }
 
-    // Notion OAuth callback — ?notion=connected means backend already saved the token
-    // We just need to refresh the user state and proceed
-    if (currentPath.includes('select-databases') && new URLSearchParams(window.location.search).get('notion') === 'connected') {
-      // Clean the URL query param without triggering a reload
-      window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+    // Notion OAuth callback — backend redirects here after successful OAuth
+    // The URL will be /onboarding/select-databases?notion=connected
+    // We detect this, clean the URL, and navigate to the correct step
+    if (new URLSearchParams(window.location.search).get('notion') === 'connected') {
+      // Clean the query param from the URL immediately
+      window.history.replaceState({}, '', window.location.hash || '/');
+      // Force refresh onboarding state from the backend
+      import('./api').then((apis) => {
+        apis.authApi.me().then(({ data }: any) => {
+          const onb = data?.onboarding;
+          if (onb) {
+            if (!onb.notion_connected) {
+              window.location.hash = '/onboarding/connect-notion';
+            } else if (!onb.journal_db_selected || !onb.tasks_db_selected) {
+              window.location.hash = '/onboarding/select-databases';
+            } else if (!onb.template_chosen) {
+              window.location.hash = '/onboarding/choose-template';
+            } else if (!onb.schedule_set) {
+              window.location.hash = '/onboarding/set-schedule';
+            } else {
+              window.location.hash = '/dashboard';
+            }
+          }
+        }).catch(() => {
+          // Token might not be ready yet — just stay on current path
+        });
+      });
     }
 
     // Onboarding routes require authentication — redirect to login if not authenticated

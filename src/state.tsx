@@ -159,8 +159,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentPath, setCurrentPath] = useState<string>(() =>
     window.location.hash.replace('#', '') || '/'
   );
-  // Flag to prevent hash routing redirect during navigation
-  const [_isNavigating, setIsNavigating] = useState(false);
+  // Ref to prevent hash routing redirect during navigation (checked synchronously)
+  const isNavigatingRef = useRef(false);
 
   // ── Toast helpers ──
   const addToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -175,11 +175,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // ── Navigation ──
   const navigate = useCallback((path: string) => {
-    setIsNavigating(true);
+    isNavigatingRef.current = true;
     window.location.hash = path;
     setCurrentPath(path);
-    // Clear the flag after navigation settles
-    setTimeout(() => setIsNavigating(false), 100);
+    // Clear the ref after navigation settles
+    setTimeout(() => { isNavigatingRef.current = false; }, 100);
   }, []);
 
   // ── Bootstrap: load user on app start if token exists ──
@@ -226,7 +226,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const handleHash = () => {
       const path = window.location.hash.replace('#', '') || '/';
       // If navigating, don't check - let the navigation complete
-      if (_isNavigating) {
+      if (isNavigatingRef.current) {
         setCurrentPath(path);
         return;
       }
@@ -254,7 +254,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.removeEventListener('hashchange', handleHash);
       clearTimeout(timeoutId);
     };
-  }, [currentUser, isBootstrapping, navigate, _isNavigating]);
+  }, [currentUser, isBootstrapping, navigate]);
 
   // ─────────────────────────────────────────────
   // AUTH
@@ -711,6 +711,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentPath,
         serverError,
         isBootstrapping,
+        isNavigatingRef,
         navigate,
         addToast,
         removeToast,

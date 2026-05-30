@@ -36,6 +36,7 @@ const MainAppContent: React.FC = () => {
     navigate,
     logout,
     isBootstrapping,
+    isNavigatingRef,
   } = useAppState();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -124,14 +125,22 @@ const MainAppContent: React.FC = () => {
     }
 
     // Onboarding routes require authentication — redirect to login if not authenticated
+    // But don't redirect if we're in the middle of navigating (isNavigatingRef is set)
     const isOnboardingRoute = [
       '/select-plan', '/checkout', '/onboarding/connect-notion',
       '/onboarding/select-databases', '/onboarding/choose-template',
       '/onboarding/set-schedule'
     ].includes(currentPath);
 
-    if (isOnboardingRoute && !currentUser) {
-      navigate('/login');
+    if (isOnboardingRoute && !currentUser && !isBootstrapping) {
+      // Only redirect if not navigating (navigate() sets isNavigatingRef.current)
+      if (!isNavigatingRef.current) {
+        import('./api').then(({ tokenStore }) => {
+          if (!tokenStore.getAccessToken()) {
+            navigate('/login');
+          }
+        });
+      }
       return null;
     }
 

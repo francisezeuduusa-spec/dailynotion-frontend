@@ -132,9 +132,13 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
 
   const handleSetSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setLoading(true);
-    await setScheduleTime(generateTime, timezone);
-    setLoading(false);
+    try {
+      await setScheduleTime(generateTime, timezone);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Render Step Indicator

@@ -347,10 +347,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               
               <div className="flex items-baseline gap-1">
                 <span className="font-serif text-4xl font-medium">
-                  {isYearly ? '$8.33' : '$10'}
+                  {isYearly ? '$3.75' : '$5'}
                 </span>
                 <span className="text-ash-gray text-xs">
-                  {isYearly ? '/ month, billed $100 annually' : '/ month'}
+                  {isYearly ? '/ month, billed $45 annually' : '/ month'}
                 </span>
               </div>
               
@@ -401,10 +401,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               
               <div className="flex items-baseline gap-1">
                 <span className="font-serif text-4xl font-medium">
-                  {isYearly ? '$24.16' : '$29'}
+                  {isYearly ? '$11.25' : '$15'}
                 </span>
                 <span className="text-ash-gray text-xs">
-                  {isYearly ? '/ month, billed $290 annually' : '/ month, for 5 seats'}
+                  {isYearly ? '/ month, billed $135 annually' : '/ month, for 5 seats'}
                 </span>
               </div>
               

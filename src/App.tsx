@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AppProvider, useAppState } from './state';
 import { tokenStore } from './api';
+import { DebugPanel } from './components/DebugPanel';
 import { LandingPage } from './components/LandingPage';
 import { AuthPages } from './components/AuthPages';
 import { OnboardingPages } from './components/OnboardingPages';
@@ -314,6 +315,7 @@ const MainAppContent: React.FC = () => {
       
       {/* Toast Alerts Frame */}
       {renderToastAlerts()}
+      <DebugPanel />
     </div>
   );
 };

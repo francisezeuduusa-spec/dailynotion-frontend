@@ -73,22 +73,20 @@ const MainAppContent: React.FC = () => {
     }
 
     // Google OAuth callback — reads real tokens from URL query params
-    if (currentPath.startsWith('/auth/google/success')) {
+    const googleCallbackPath = window.location.pathname + window.location.search;
+    if (googleCallbackPath.startsWith('/auth/google/success')) {
       const params = new URLSearchParams(window.location.search);
       const accessToken = params.get('accessToken');
       const refreshToken = params.get('refreshToken');
       const redirectTo = params.get('redirectTo') || '/dashboard';
       
-      console.log('Google callback:', { accessToken: !!accessToken, refreshToken: !!refreshToken, redirectTo });
       
       if (accessToken && refreshToken) {
         tokenStore.setTokens(accessToken, refreshToken);
-        console.log('Tokens stored, navigating to:', redirectTo);
         // Clear URL params and navigate without reload
         window.history.replaceState(null, '', window.location.pathname);
         navigate(redirectTo);
       } else {
-        console.log('No tokens, going to login');
         setTimeout(() => navigate('/login?error=google_failed'), 200);
       }
       return (

@@ -73,21 +73,22 @@ const MainAppContent: React.FC = () => {
     }
 
     // Google OAuth callback — reads real tokens from URL query params
+    // Uses window.location.pathname since Google redirects to a path (not hash)
     const googleCallbackPath = window.location.pathname + window.location.search;
     if (googleCallbackPath.startsWith('/auth/google/success')) {
       const params = new URLSearchParams(window.location.search);
       const accessToken = params.get('accessToken');
       const refreshToken = params.get('refreshToken');
-      const redirectTo = params.get('redirectTo') || '/dashboard';
-      
-      
+      const redirectTo = params.get('redirectTo') || '/select-plan';
+
       if (accessToken && refreshToken) {
         tokenStore.setTokens(accessToken, refreshToken);
-        // Clear URL params and navigate without reload
-        window.history.replaceState(null, '', window.location.pathname);
-        navigate(redirectTo);
+        // Clear query params and navigate with hash routing
+        window.history.replaceState(null, '', '/');
+        // Force reload with hash so app boots with tokens
+        window.location.href = '/#' + redirectTo;
       } else {
-        setTimeout(() => navigate('/login?error=google_failed'), 200);
+        window.location.href = '/#' + '/login?error=google_failed';
       }
       return (
         <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
@@ -95,7 +96,7 @@ const MainAppContent: React.FC = () => {
           <span className="text-xs uppercase tracking-widest font-mono font-bold">Authorizing workspace session...</span>
         </div>
       );
-    }
+    } }
 
     // Onboarding screens
     if (

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { User, Subscription, NotionConfig, Template, Schedule, JournalRun, OnboardingState, PlanType } from './types';
 import {
   authApi,
@@ -62,6 +62,7 @@ interface AppContextType {
   loadPrefilledDemo: () => void;
   injectMockError: (errorCode: string | null) => void;
   setSubscriptionStatus: (status: 'active' | 'past_due') => void;
+  isNavigatingRef: React.MutableRefObject<boolean>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -191,7 +192,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const stored = localStorage.getItem('dn_access_token');
         if (stored && stored !== 'null' && stored !== 'undefined' && stored !== '' && stored.length > 20) {
           token = stored;
-          _accessToken = stored; // restore in-memory
+          tokenStore.setTokens(stored, localStorage.getItem('dn_refresh_token') || '');
         }
       }
       if (!token || token === '') {
@@ -209,6 +210,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const status = err?.response?.status;
         if (status === 401) {
           tokenStore.clearTokens();
+          localStorage.removeItem('dn_access_token');
+          localStorage.removeItem('dn_refresh_token');
         }
         // For any other error (500, network timeout, etc.) keep the token
         // and let the user stay on the page — the token may still be valid
@@ -274,6 +277,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const { data } = await authApi.signup(fullname, email, psw);
       tokenStore.setTokens(data.accessToken, data.refreshToken);
+      localStorage.setItem('dn_access_token', data.accessToken);
+      localStorage.setItem('dn_refresh_token', data.refreshToken);
       setCurrentUser(data.user);
       setSubscription(null);
       setOnboarding({ step: 'select-plan', is_complete: false });
@@ -293,6 +298,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const { data } = await authApi.login(email, psw);
       tokenStore.setTokens(data.accessToken, data.refreshToken);
+      localStorage.setItem('dn_access_token', data.accessToken);
+      localStorage.setItem('dn_refresh_token', data.refreshToken);
       setCurrentUser(data.user);
       setSubscription(mapSubscription(data.subscription));
       setOnboarding(mapOnboarding(data.onboarding));
@@ -312,6 +319,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (refreshToken) await authApi.logout(refreshToken);
     } catch { /* ignore */ }
     tokenStore.clearTokens();
+    localStorage.removeItem('dn_access_token');
+    localStorage.removeItem('dn_refresh_token');
     setCurrentUser(null);
     setSubscription(null);
     setNotionConfig(null);
@@ -324,7 +333,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Google OAuth — redirect to backend, which handles everything and
-  // redirects back to /auth/google/success?accessToken=...&refreshToken=...&redirectTo=...
+  // redirects back to /#/auth/google/success?accessToken=...&refreshToken=...&redirectTo=...
   const googleConnect = () => {
     window.location.href = authApi.getGoogleAuthUrl();
   };
@@ -354,7 +363,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const startStripeCheckout = async (plan: PlanType, interval: 'monthly' | 'yearly', seats = 1) => {
     try {
       const { data } = await billingApi.createCheckout(plan, interval, seats);
-      // Redirect to Stripe — user will come back to /onboarding/connect-notion
+      // Redirect to Stripe — user will come back to /#/onboarding/connect-notion
       window.location.href = data.checkoutUrl;
     } catch (err: any) {
       addToast(err.response?.data?.error || 'Failed to start checkout.', 'error');
@@ -454,7 +463,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     {
       id: 'dt-2',
       name: 'Full Daily Review',
-      body: `# Daily Journal — {{date}}\n\n## 🗓 Today's Schedule\n{{meetings_today}}\n\n## ✅ Tasks Due Today\n{{tasks_today}}\n\n## 📝 Notes from Yesterday\n{{notes_last_24h}}\n\n## 🔄 Habits\n{{habit_tracker}}\n\n---\n## 💭 Reflections\n**What went well:**\n\n**What was challenging:**\n\n**Tomorrow's focus:**\n\n`,
+      body: `# Daily Journal — {{date}}\n\n## 🗓 Today's Schedule\n{{meetings_today}}\n\n## ✅ Tasks Due Today\n{{tasks_today}}\n\n## 📝 Notes from Yesterday\n{{notes_last_24h}}\n\n## 🔄 Habits\n{{habits_today}}\n\n---\n*My thoughts for today:*\n\n`,
       is_default: false,
       is_custom: false,
     },
@@ -654,6 +663,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await authApi.deleteAccount(confirmText);
       tokenStore.clearTokens();
+      localStorage.removeItem('dn_access_token');
+      localStorage.removeItem('dn_refresh_token');
       setCurrentUser(null);
       setSubscription(null);
       setNotionConfig(null);

@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { AppProvider, useAppState } from './state';
-import { tokenStore } from './api';
-import { DebugPanel } from './components/DebugPanel';
 import { LandingPage } from './components/LandingPage';
 import { AuthPages } from './components/AuthPages';
 import { OnboardingPages } from './components/OnboardingPages';
@@ -38,6 +36,7 @@ const MainAppContent: React.FC = () => {
     navigate,
     logout,
     isBootstrapping,
+    isNavigatingRef,
   } = useAppState();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -54,41 +53,33 @@ const MainAppContent: React.FC = () => {
 
   // Router dispatcher
   const renderRouteContent = () => {
-    // Google OAuth callback - check pathname FIRST before any routing
-        // Google OAuth callback - CRITICAL: This must be FIRST
-    if (window.location.pathname === '/auth/google/success' || currentPath.startsWith('/auth/google/success')) {
+    // Google OAuth callback — check both hash path AND real pathname
+    // because the backend redirects to /auth/google/success (no hash)
+    const isGoogleCallback =
+      currentPath.startsWith('/auth/google/success') ||
+      window.location.pathname.startsWith('/auth/google/success');
+
+    if (isGoogleCallback) {
       const params = new URLSearchParams(window.location.search);
       const accessToken = params.get('accessToken');
       const refreshToken = params.get('refreshToken');
-      let redirectTo = params.get('redirectTo');
-
-      // Default to select-plan for new users
-      if (!redirectTo || redirectTo === '/dashboard') {
-        redirectTo = '/select-plan';
-      }
-
+      const redirectTo = params.get('redirectTo') || '/dashboard';
       if (accessToken && refreshToken) {
-        tokenStore.setTokens(accessToken, refreshToken);
-        // Also persist to localStorage so bootstrap can restore on reload
-        localStorage.setItem('dn_access_token', accessToken);
-        localStorage.setItem('dn_refresh_token', refreshToken);
-        // Redirect using hash routing
-        window.location.replace('/#' + redirectTo);
-        return (
-          <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
-            <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
-            <span className="text-xs uppercase tracking-widest font-mono font-bold">Redirecting to your workspace...</span>
-          </div>
-        );
+        import('./api').then(({ tokenStore }) => {
+          tokenStore.setTokens(accessToken, refreshToken);
+          localStorage.setItem('dn_access_token', accessToken);
+          localStorage.setItem('dn_refresh_token', refreshToken);
+          window.location.replace('/#' + redirectTo);
+        });
       } else {
         window.location.replace('/#/login?error=google_failed');
-        window.history.replaceState(null, '', '/');
-        return (
-          <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
-            <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
-          </div>
-        );
       }
+      return (
+        <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
+          <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
+          <span className="text-xs uppercase tracking-widest font-mono font-bold">Authorizing workspace session...</span>
+        </div>
+      );
     }
     // Dynamic public routes
     if (currentPath === '/' || currentPath === '') {
@@ -109,40 +100,62 @@ const MainAppContent: React.FC = () => {
       return <AuthPages onNavigate={navigate} isSignUp={false} />;
     }
 
-        // Google OAuth callback - CRITICAL: This must be FIRST
-    if (window.location.pathname === '/auth/google/success' || currentPath.startsWith('/auth/google/success')) {
-      const params = new URLSearchParams(window.location.search);
-      const accessToken = params.get('accessToken');
-      const refreshToken = params.get('refreshToken');
-      let redirectTo = params.get('redirectTo');
-      
-      // Default to select-plan for new users
-      if (!redirectTo || redirectTo === '/dashboard') {
-        redirectTo = '/select-plan';
+
+
+    // Notion OAuth callback — backend redirects here after successful OAuth
+    // The URL will be /onboarding/select-databases?notion=connected
+    // We detect this, clean the URL, and navigate to the correct step
+    if (new URLSearchParams(window.location.search).get('notion') === 'connected') {
+      // Clean the query param from the URL immediately
+      window.history.replaceState({}, '', window.location.hash || '/');
+      // Force refresh onboarding state from the backend
+      import('./api').then((apis) => {
+        apis.authApi.me().then(({ data }: any) => {
+          const onb = data?.onboarding;
+          if (onb) {
+            if (!onb.notion_connected) {
+              window.location.hash = '/onboarding/connect-notion';
+            } else if (!onb.journal_db_selected || !onb.tasks_db_selected) {
+              window.location.hash = '/onboarding/select-databases';
+            } else if (!onb.template_chosen) {
+              window.location.hash = '/onboarding/choose-template';
+            } else if (!onb.schedule_set) {
+              window.location.hash = '/onboarding/set-schedule';
+            } else {
+              window.location.hash = '/dashboard';
+            }
+          }
+        }).catch(() => {
+          // Token might not be ready yet — just stay on current path
+        });
+      });
+    }
+
+    // Onboarding routes require authentication — redirect to login if not authenticated
+    // But don't redirect if we're in the middle of navigating
+    const isOnboardingRoute = [
+      '/select-plan', '/checkout', '/onboarding/connect-notion',
+      '/onboarding/select-databases', '/onboarding/choose-template',
+      '/onboarding/set-schedule'
+    ].includes(currentPath);
+
+    if (isOnboardingRoute && !currentUser && !isBootstrapping) {
+      // Only redirect if not navigating AND no token exists
+      if (!isNavigatingRef.current) {
+        import('./api').then(({ tokenStore }) => {
+          if (!tokenStore.getAccessToken()) {
+            navigate('/login');
+          }
+        });
       }
-      
-      if (accessToken && refreshToken) {
-        tokenStore.setTokens(accessToken, refreshToken);
-        // Also persist to localStorage so bootstrap can restore on reload
-        localStorage.setItem('dn_access_token', accessToken);
-        localStorage.setItem('dn_refresh_token', refreshToken);
-        // Redirect using hash routing
-        window.location.replace('/#' + redirectTo);
-        return (
-          <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
-            <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
-            <span className="text-xs uppercase tracking-widest font-mono font-bold">Redirecting to your workspace...</span>
-          </div>
-        );
-      } else {
-        window.location.replace('/#/login?error=google_failed');
-        window.history.replaceState(null, '', '/');
-        return (
-          <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
-            <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
-          </div>
-        );
-      }
+      // Return null to avoid flash - let the navigate complete naturally
+      return null;
+    }
+
+    // Dashboard routes - if user is logged in and onboarding is complete, show dashboard
+    // If user is logged in but onboarding incomplete, they'll be redirected by backend guard
+    if (currentPath.startsWith('/dashboard') && currentUser) {
+      return renderDashboardLayout();
     }
 
     // Onboarding screens
@@ -351,7 +364,6 @@ const MainAppContent: React.FC = () => {
       
       {/* Toast Alerts Frame */}
       {renderToastAlerts()}
-      <DebugPanel />
     </div>
   );
 };

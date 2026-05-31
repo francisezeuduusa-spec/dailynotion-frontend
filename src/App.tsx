@@ -54,6 +54,42 @@ const MainAppContent: React.FC = () => {
 
   // Router dispatcher
   const renderRouteContent = () => {
+    // Google OAuth callback - check pathname FIRST before any routing
+        // Google OAuth callback - CRITICAL: This must be FIRST
+    if (window.location.pathname === '/auth/google/success' || currentPath.startsWith('/auth/google/success')) {
+      const params = new URLSearchParams(window.location.search);
+      const accessToken = params.get('accessToken');
+      const refreshToken = params.get('refreshToken');
+      let redirectTo = params.get('redirectTo');
+
+      // Default to select-plan for new users
+      if (!redirectTo || redirectTo === '/dashboard') {
+        redirectTo = '/select-plan';
+      }
+
+      if (accessToken && refreshToken) {
+        tokenStore.setTokens(accessToken, refreshToken);
+        // Also persist to localStorage so bootstrap can restore on reload
+        localStorage.setItem('dn_access_token', accessToken);
+        localStorage.setItem('dn_refresh_token', refreshToken);
+        // Redirect using hash routing
+        window.location.replace('/#' + redirectTo);
+        return (
+          <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
+            <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
+            <span className="text-xs uppercase tracking-widest font-mono font-bold">Redirecting to your workspace...</span>
+          </div>
+        );
+      } else {
+        window.location.replace('/#/login?error=google_failed');
+        window.history.replaceState(null, '', '/');
+        return (
+          <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
+            <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
+          </div>
+        );
+      }
+    }
     // Dynamic public routes
     if (currentPath === '/' || currentPath === '') {
       return <LandingPage onNavigate={navigate} />;

@@ -1,0 +1,6 @@
+{
+  "name": "DailyNotion",
+  "description": "DailyNotion automatically creates your daily journal page in Notion and fills it with tasks, meetings, and notes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -87,8 +87,8 @@ const MainAppContent: React.FC = () => {
       if (accessToken && refreshToken) {
         tokenStore.setTokens(accessToken, refreshToken);
         sessionStorage.setItem('oauth_pending_redirect', redirectTo);
-        window.location.hash = redirectTo;
-        window.history.replaceState(null, '', '/');
+        // Redirect using hash routing
+        window.location.href = '/#' + redirectTo;
         return (
           <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
             <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
@@ -96,7 +96,7 @@ const MainAppContent: React.FC = () => {
           </div>
         );
       } else {
-        window.location.hash = '/login?error=google_failed';
+        window.location.href = '/#/login?error=google_failed';
         window.history.replaceState(null, '', '/');
         return (
           <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
@@ -106,7 +106,7 @@ const MainAppContent: React.FC = () => {
       }
     }
 
-    // Onboarding screens// Onboarding screens
+    // Onboarding screens
     if (
       currentPath === '/select-plan' ||
       currentPath === '/checkout' ||

@@ -72,8 +72,12 @@ const MainAppContent: React.FC = () => {
       return <AuthPages onNavigate={navigate} isSignUp={false} />;
     }
 
-    // Google OAuth callback — reads real tokens from URL query params
-    if (currentPath.startsWith('/auth/google/success')) {
+    // Google OAuth callback — check both hash path AND real pathname
+    const isGoogleCallback =
+      currentPath.startsWith('/auth/google/success') ||
+      window.location.pathname.startsWith('/auth/google/success');
+
+    if (isGoogleCallback) {
       const params = new URLSearchParams(window.location.search);
       const accessToken = params.get('accessToken');
       const refreshToken = params.get('refreshToken');
@@ -81,11 +85,12 @@ const MainAppContent: React.FC = () => {
       if (accessToken && refreshToken) {
         import('./api').then(({ tokenStore }) => {
           tokenStore.setTokens(accessToken, refreshToken);
-          window.location.hash = redirectTo;
-          window.location.reload();
+          localStorage.setItem('dn_access_token', accessToken);
+          localStorage.setItem('dn_refresh_token', refreshToken);
+          window.location.replace('/#' + redirectTo);
         });
       } else {
-        setTimeout(() => navigate('/login?error=google_failed'), 200);
+        window.location.replace('/#/login?error=google_failed');
       }
       return (
         <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
@@ -249,7 +254,7 @@ const MainAppContent: React.FC = () => {
         {/* Logout bottom trigger */}
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 py-2 px-3 rounded-lg text-xs font-semibold tracking-wide text-ash-gray hover:bg-red-50 hover:text-red-650 transition-colors cursor-pointer border border-transparent hover:border-red-100"
+          className="w-full flex items-center gap-3 py-2 px-3 rounded-lg text-xs font-semibold tracking-wide text-ash-gray hover:bg-red-50 hover:text-red-650 transition-colors cursor-pointer bord[...]
         >
           <LogOut size={15} />
           <span>Log out</span>

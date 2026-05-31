@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AppProvider, useAppState } from './state';
+import { tokenStore } from './api';
 import { LandingPage } from './components/LandingPage';
 import { AuthPages } from './components/AuthPages';
 import { OnboardingPages } from './components/OnboardingPages';
@@ -78,11 +79,10 @@ const MainAppContent: React.FC = () => {
       const refreshToken = params.get('refreshToken');
       const redirectTo = params.get('redirectTo') || '/dashboard';
       if (accessToken && refreshToken) {
-        import('./api').then(({ tokenStore }) => {
-          tokenStore.setTokens(accessToken, refreshToken);
-          window.location.hash = redirectTo;
-          window.location.reload();
-        });
+        tokenStore.setTokens(accessToken, refreshToken);
+        // Clear URL params and navigate without reload
+        window.history.replaceState(null, '', window.location.pathname);
+        navigate(redirectTo);
       } else {
         setTimeout(() => navigate('/login?error=google_failed'), 200);
       }

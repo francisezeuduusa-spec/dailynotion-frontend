@@ -201,9 +201,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     boot();
     
     // Handle redirect from Google OAuth
-    const storedRedirect = sessionStorage.getItem('oauth_redirect');
+    const storedRedirect = sessionStorage.getItem('oauth_pending_redirect');
     if (storedRedirect) {
-      sessionStorage.removeItem('oauth_redirect');
+      sessionStorage.removeItem('oauth_pending_redirect');
       setTimeout(() => navigate(storedRedirect), 100);
     }
   }, []);

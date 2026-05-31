@@ -72,33 +72,41 @@ const MainAppContent: React.FC = () => {
       return <AuthPages onNavigate={navigate} isSignUp={false} />;
     }
 
-    // Google OAuth callback — reads real tokens from URL query params
-    // Uses window.location.pathname since Google redirects to a path (not hash)
-    const googleCallbackPath = window.location.pathname + window.location.search;
-    if (googleCallbackPath.startsWith('/auth/google/success')) {
+        // Google OAuth callback - CRITICAL: This must be FIRST
+    if (window.location.pathname === '/auth/google/success') {
       const params = new URLSearchParams(window.location.search);
       const accessToken = params.get('accessToken');
       const refreshToken = params.get('refreshToken');
-      const redirectTo = params.get('redirectTo') || '/select-plan';
-
+      let redirectTo = params.get('redirectTo');
+      
+      // Default to select-plan for new users
+      if (!redirectTo || redirectTo === '/dashboard') {
+        redirectTo = '/select-plan';
+      }
+      
       if (accessToken && refreshToken) {
         tokenStore.setTokens(accessToken, refreshToken);
-        // Store redirect target in sessionStorage for after reload
-        sessionStorage.setItem('oauth_redirect', redirectTo);
-        // Hard reload - app will boot with tokens and redirect
-        window.location.reload();
+        sessionStorage.setItem('oauth_pending_redirect', redirectTo);
+        window.location.hash = redirectTo;
+        window.history.replaceState(null, '', '/');
+        return (
+          <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
+            <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
+            <span className="text-xs uppercase tracking-widest font-mono font-bold">Redirecting to your workspace...</span>
+          </div>
+        );
       } else {
-        window.location.href = '/#' + '/login?error=google_failed';
+        window.location.hash = '/login?error=google_failed';
+        window.history.replaceState(null, '', '/');
+        return (
+          <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
+            <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
+          </div>
+        );
       }
-      return (
-        <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
-          <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
-          <span className="text-xs uppercase tracking-widest font-mono font-bold">Authorizing workspace session...</span>
-        </div>
-      );
     }
 
-    // Onboarding screens
+    // Onboarding screens// Onboarding screens
     if (
       currentPath === '/select-plan' ||
       currentPath === '/checkout' ||

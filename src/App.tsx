@@ -73,7 +73,7 @@ const MainAppContent: React.FC = () => {
     }
 
         // Google OAuth callback - CRITICAL: This must be FIRST
-    if (window.location.pathname === '/auth/google/success') {
+    if (window.location.pathname === '/auth/google/success' || currentPath.startsWith('/auth/google/success')) {
       const params = new URLSearchParams(window.location.search);
       const accessToken = params.get('accessToken');
       const refreshToken = params.get('refreshToken');
@@ -86,7 +86,9 @@ const MainAppContent: React.FC = () => {
       
       if (accessToken && refreshToken) {
         tokenStore.setTokens(accessToken, refreshToken);
-        sessionStorage.setItem('oauth_pending_redirect', redirectTo);
+        // Also persist to localStorage so bootstrap can restore on reload
+        localStorage.setItem('dn_access_token', accessToken);
+        localStorage.setItem('dn_refresh_token', refreshToken);
         // Redirect using hash routing
         window.location.replace('/#' + redirectTo);
         return (

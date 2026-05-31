@@ -88,7 +88,7 @@ const MainAppContent: React.FC = () => {
         tokenStore.setTokens(accessToken, refreshToken);
         sessionStorage.setItem('oauth_pending_redirect', redirectTo);
         // Redirect using hash routing
-        window.location.href = '/#' + redirectTo;
+        window.location.replace('/#' + redirectTo);
         return (
           <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">
             <span className="w-8 h-8 border-4 border-sage-green border-t-transparent rounded-full animate-spin mb-4" />
@@ -96,7 +96,7 @@ const MainAppContent: React.FC = () => {
           </div>
         );
       } else {
-        window.location.href = '/#/login?error=google_failed';
+        window.location.replace('/#/login?error=google_failed');
         window.history.replaceState(null, '', '/');
         return (
           <div className="min-h-screen flex flex-col justify-center items-center bg-canvas-white font-sans text-ash-gray">

@@ -7,6 +7,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const API_URL = process.env.VITE_API_URL || 'https://dailynotion-backend.onrender.com';
 
+// Parse JSON bodies
+app.use(express.json());
+
 // Serve static files from dist
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -22,7 +25,7 @@ app.use('/api', (req, res) => {
     headers,
   };
   
-  if (['POST', 'PUT', 'PATCH'].includes(method) && req.body) {
+  if (['POST', 'PUT', 'PATCH'].includes(method) && Object.keys(req.body).length > 0) {
     options.body = JSON.stringify(req.body);
   }
   

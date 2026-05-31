@@ -83,10 +83,10 @@ const MainAppContent: React.FC = () => {
 
       if (accessToken && refreshToken) {
         tokenStore.setTokens(accessToken, refreshToken);
-        // Clear query params and navigate with hash routing
-        window.history.replaceState(null, '', '/');
-        // Force reload with hash so app boots with tokens
-        window.location.href = '/#' + redirectTo;
+        // Store redirect target in sessionStorage for after reload
+        sessionStorage.setItem('oauth_redirect', redirectTo);
+        // Hard reload - app will boot with tokens and redirect
+        window.location.reload();
       } else {
         window.location.href = '/#' + '/login?error=google_failed';
       }

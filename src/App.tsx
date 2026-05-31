@@ -78,12 +78,17 @@ const MainAppContent: React.FC = () => {
       const accessToken = params.get('accessToken');
       const refreshToken = params.get('refreshToken');
       const redirectTo = params.get('redirectTo') || '/dashboard';
+      
+      console.log('Google callback:', { accessToken: !!accessToken, refreshToken: !!refreshToken, redirectTo });
+      
       if (accessToken && refreshToken) {
         tokenStore.setTokens(accessToken, refreshToken);
+        console.log('Tokens stored, navigating to:', redirectTo);
         // Clear URL params and navigate without reload
         window.history.replaceState(null, '', window.location.pathname);
         navigate(redirectTo);
       } else {
+        console.log('No tokens, going to login');
         setTimeout(() => navigate('/login?error=google_failed'), 200);
       }
       return (

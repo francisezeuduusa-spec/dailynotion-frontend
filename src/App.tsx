@@ -96,7 +96,7 @@ const MainAppContent: React.FC = () => {
           <span className="text-xs uppercase tracking-widest font-mono font-bold">Authorizing workspace session...</span>
         </div>
       );
-    } }
+    }
 
     // Onboarding screens
     if (

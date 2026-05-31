@@ -88,7 +88,7 @@ export const DashboardBilling: React.FC = () => {
                 className="bg-sage-green text-charcoal-text font-bold text-xs py-3.5 px-6 rounded-full hover:opacity-90 shadow-sm cursor-pointer disabled:opacity-50"
                 style={{ borderRadius: '100px' }}
               >
-                Upgrade to Pro — $10 / mo
+                Upgrade to Pro — $5 / mo
               </button>
             ) : (
               <button

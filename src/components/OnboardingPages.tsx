@@ -247,8 +247,8 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
                 <span className="text-[11px] font-mono font-bold text-cloud-gray uppercase tracking-wider">Automated Daily</span>
                 <h3 className="text-xl font-bold text-charcoal-text mt-1">Pro</h3>
                 <div className="my-4 flex items-baseline gap-1">
-                  <span className="font-serif text-3xl font-medium">{isYearly ? '$8.33' : '$10'}</span>
-                  <span className="text-ash-gray text-xs">/ month {isYearly ? '(billed $100 annually)' : ''}</span>
+                  <span className="font-serif text-3xl font-medium">{isYearly ? '$3.75' : '$5'}</span>
+                  <span className="text-ash-gray text-xs">/ month {isYearly ? '(billed $45 annually)' : ''}</span>
                 </div>
                 <hr className="border-whisper-gray my-4" />
                 <ul className="flex flex-col gap-2.5 text-xs text-ash-gray mt-4">
@@ -274,8 +274,8 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
                 <span className="text-[11px] font-mono font-bold text-cloud-gray uppercase tracking-wider">Enterprise Teams</span>
                 <h3 className="text-xl font-bold text-charcoal-text mt-1">Team</h3>
                 <div className="my-4 flex items-baseline gap-1">
-                  <span className="font-serif text-3xl font-medium">{isYearly ? '$24.16' : '$29'}</span>
-                  <span className="text-ash-gray text-xs">/ month {isYearly ? '(billed $290 annually)' : ''}</span>
+                  <span className="font-serif text-3xl font-medium">{isYearly ? '$13.33' : '$15'}</span>
+                  <span className="text-ash-gray text-xs">/ month {isYearly ? '(billed $160 annually)' : ''}</span>
                 </div>
                 <hr className="border-whisper-gray my-4" />
                 <ul className="flex flex-col gap-2.5 text-xs text-ash-gray mt-4">
@@ -329,8 +329,8 @@ export const OnboardingPages: React.FC<OnboardingPagesProps> = ({ onNavigate, cu
               <span className="text-charcoal-text font-semibold">Total Due:</span>
               <span className="font-serif text-2xl font-semibold text-charcoal-text">
                 {subscription?.plan === 'team'
-                  ? (subscription?.interval === 'yearly' ? '$290.00 / year' : '$29.00 / month')
-                  : (subscription?.interval === 'yearly' ? '$100.00 / year' : '$10.00 / month')}
+                  ? (subscription?.interval === 'yearly' ? '$160.00 / year' : '$15.00 / month')
+                  : (subscription?.interval === 'yearly' ? '$45.00 / year' : '$5.00 / month')}
               </span>
             </div>
           </div>
